@@ -302,18 +302,19 @@ export class Scene {
      * 更新相机位置 (跟随玩家)
      */
     updateCameraPosition(playerPosition) {
-        // 相机跟随逻辑 - 降低相机高度，获得更合适的视角
-        const offset = { x: 0, y: 2, z: 10 };  // 相机在玩家后方10单位，上方2单位（从4降低到2）
+        // 相机跟随逻辑 - 减少相机的横向偏移，保持更居中的视角
+        const offset = { x: 0, y: 1, z: 8 };  // 减少Y偏移(从2到1)和Z偏移(从10到8)
         
-        this.camera.position.x = playerPosition.x + offset.x;
-        this.camera.position.y = playerPosition.y + offset.y;
-        this.camera.position.z = playerPosition.z + offset.z;  // 玩家向负Z前进，相机在正Z方向
+        // 减少相机的横向跟随，让它更居中
+        this.camera.position.x = playerPosition.x * 0.3 + offset.x;  // 只跟随30%的横向移动
+        this.camera.position.y = playerPosition.y * 0.3 + offset.y;  // 只跟随30%的纵向移动
+        this.camera.position.z = playerPosition.z + offset.z;  // Z轴正常跟随
         
-        // 相机看向玩家前方一点，让视野更朝前
+        // 相机看向玩家前方，但减少视角变化
         this.camera.lookAt(
-            playerPosition.x,
-            playerPosition.y,
-            playerPosition.z - 5  // 看向玩家前方5单位处
+            playerPosition.x * 0.5,     // 看向点也减少横向偏移
+            playerPosition.y * 0.5,     // 看向点也减少纵向偏移
+            playerPosition.z - 3        // 看向玩家前方3单位处（从5减少到3）
         );
     }
 

@@ -37,28 +37,27 @@ export class Tunnel {
      * 创建隧道材质
      */
     createMaterials() {
-        // 内壁发光材质
+        // 内壁材质 - 使用稍微发光的材质确保可见
         this.materials.inner = new THREE.MeshLambertMaterial({
             color: Config.TUNNEL.INNER_GLOW_COLOR,
-            emissive: new THREE.Color(Config.TUNNEL.INNER_GLOW_COLOR).multiplyScalar(0.2),
+            emissive: new THREE.Color(Config.TUNNEL.INNER_GLOW_COLOR).multiplyScalar(0.05), // 少量发光确保可见
             side: THREE.BackSide,
-            transparent: true,
-            opacity: 0.8
+            transparent: false
         });
 
-        // 外壁结构材质
+        // 外壁结构材质 - 使用稍微发光的材质
         this.materials.outer = new THREE.MeshLambertMaterial({
             color: Config.TUNNEL.OUTER_COLOR,
-            emissive: new THREE.Color(Config.TUNNEL.OUTER_COLOR).multiplyScalar(0.1),
-            side: THREE.FrontSide
+            emissive: new THREE.Color(Config.TUNNEL.OUTER_COLOR).multiplyScalar(0.03), // 少量发光
+            side: THREE.FrontSide,
+            transparent: false
         });
 
-        // 线框材质（科幻效果）
+        // 简化线框材质 - 静态不闪烁
         this.materials.wireframe = new THREE.MeshBasicMaterial({
             color: Config.TUNNEL.INNER_GLOW_COLOR,
             wireframe: true,
-            transparent: true,
-            opacity: 0.3
+            transparent: false
         });
 
         // 调试材质
@@ -76,13 +75,19 @@ export class Tunnel {
      * 生成初始隧道段
      */
     generateInitialSegments() {
-        // 预生成足够的隧道段
-        for (let i = 0; i < Config.TUNNEL.SEGMENTS_AHEAD + Config.TUNNEL.SEGMENTS_BEHIND; i++) {
+        console.log('开始生成初始隧道段...');
+        
+        // 增加总段数，确保完全覆盖
+        const totalSegments = Config.TUNNEL.SEGMENTS_AHEAD + Config.TUNNEL.SEGMENTS_BEHIND + 4; // 再增加2段
+        
+        for (let i = 0; i < totalSegments; i++) {
             const z = -i * Config.TUNNEL.SEGMENT_LENGTH;
+            console.log(`生成初始段 ${i}: z=${z}`);
             this.createSegment(z);
         }
         
-        this.lastGeneratedZ = -(Config.TUNNEL.SEGMENTS_AHEAD + Config.TUNNEL.SEGMENTS_BEHIND - 1) * Config.TUNNEL.SEGMENT_LENGTH;
+        this.lastGeneratedZ = -(totalSegments - 1) * Config.TUNNEL.SEGMENT_LENGTH;
+        console.log(`初始隧道段生成完成，共${this.segments.length}段，lastGeneratedZ=${this.lastGeneratedZ}`);
     }
 
     /**
@@ -114,11 +119,14 @@ export class Tunnel {
         const group = new THREE.Group();
         group.position.z = zPosition;
 
+        // 使用标准段长度，无重叠
+        const segmentLength = Config.TUNNEL.SEGMENT_LENGTH;
+
         // 创建内壁圆筒
         const innerGeometry = new THREE.CylinderGeometry(
             Config.TUNNEL.RADIUS - Config.TUNNEL.WALL_THICKNESS,
             Config.TUNNEL.RADIUS - Config.TUNNEL.WALL_THICKNESS,
-            Config.TUNNEL.SEGMENT_LENGTH,
+            segmentLength,
             16,
             1,
             true
@@ -134,7 +142,7 @@ export class Tunnel {
         const outerGeometry = new THREE.CylinderGeometry(
             Config.TUNNEL.RADIUS,
             Config.TUNNEL.RADIUS,
-            Config.TUNNEL.SEGMENT_LENGTH,
+            segmentLength,
             16,
             1,
             true
@@ -145,11 +153,11 @@ export class Tunnel {
         const outerMesh = new THREE.Mesh(outerGeometry, this.materials.outer);
         group.add(outerMesh);
 
-        // 添加结构线框
+        // 恢复简单的线框结构，提供视觉轮廓
         const wireframeGeometry = new THREE.CylinderGeometry(
-            Config.TUNNEL.RADIUS - 0.1,
-            Config.TUNNEL.RADIUS - 0.1,
-            Config.TUNNEL.SEGMENT_LENGTH,
+            Config.TUNNEL.RADIUS - 0.2,
+            Config.TUNNEL.RADIUS - 0.2,
+            segmentLength,
             8,
             1,
             true
@@ -160,12 +168,6 @@ export class Tunnel {
         const wireframeMesh = new THREE.Mesh(wireframeGeometry, this.materials.wireframe);
         group.add(wireframeMesh);
 
-        // 添加支撑环结构
-        this.addSupportRings(group);
-
-        // 添加科幻装饰
-        this.addSciFiDetails(group);
-
         return group;
     }
 
@@ -174,11 +176,11 @@ export class Tunnel {
      */
     addSupportRings(group) {
         const ringCount = 3;
-        const ringSpacing = Config.TUNNEL.SEGMENT_LENGTH / (ringCount + 1);
+        const ringSpacing = Config.TUNNEL.SEGMENT_LENGTH / (ringCount + 1); // 使用原始段长度
 
         for (let i = 0; i < ringCount; i++) {
             const ring = this.createSupportRing();
-            ring.position.z = -Config.TUNNEL.SEGMENT_LENGTH / 2 + (i + 1) * ringSpacing;
+            ring.position.z = -Config.TUNNEL.SEGMENT_LENGTH / 2 + (i + 1) * ringSpacing; // 使用原始段长度
             group.add(ring);
         }
     }
@@ -257,7 +259,7 @@ export class Tunnel {
             // 添加角度偏移，避免条纹出现在垂直中心轴线上
             const angle = (i / stripeCount) * Math.PI * 2 + Math.PI / 8; // 添加22.5度偏移
             
-            const stripeGeometry = new THREE.PlaneGeometry(0.2, Config.TUNNEL.SEGMENT_LENGTH);
+            const stripeGeometry = new THREE.PlaneGeometry(0.2, Config.TUNNEL.SEGMENT_LENGTH); // 使用原始段长度
             const stripeMaterial = new THREE.MeshBasicMaterial({
                 color: Config.TUNNEL.INNER_GLOW_COLOR,
                 transparent: true,
@@ -292,7 +294,7 @@ export class Tunnel {
                 panel.position.set(
                     Math.cos(angle) * (Config.TUNNEL.RADIUS - 0.2),
                     Math.sin(angle) * (Config.TUNNEL.RADIUS - 0.2),
-                    (Math.random() - 0.5) * Config.TUNNEL.SEGMENT_LENGTH * 0.8
+                    (Math.random() - 0.5) * Config.TUNNEL.SEGMENT_LENGTH * 0.8 // 使用原始段长度
                 );
                 panel.rotation.y = -angle + Math.PI;
                 
@@ -369,27 +371,49 @@ export class Tunnel {
      * 管理隧道段的生成和回收
      */
     manageSegments() {
-        // 检查是否需要生成新段（玩家向负Z方向移动）
+        // 计算需要生成段的前方位置（玩家前方）
         const frontZ = this.currentZ - Config.TUNNEL.SEGMENTS_AHEAD * Config.TUNNEL.SEGMENT_LENGTH;
         
-        // 修复：当玩家向负方向移动时，需要在更远的负Z位置生成新段
+        // 不使用缓冲区，精确在需要的位置生成
+        let generatedCount = 0;
         while (this.lastGeneratedZ > frontZ) {
             this.lastGeneratedZ -= Config.TUNNEL.SEGMENT_LENGTH;
             this.createSegment(this.lastGeneratedZ);
-            console.log(`生成新隧道段在 Z=${this.lastGeneratedZ}, 玩家位置 Z=${this.currentZ}`);
+            generatedCount++;
+            
+            // 减少调试日志频率
+            if (generatedCount <= 2) {
+                console.log(`生成新隧道段: z=${this.lastGeneratedZ.toFixed(1)}, 玩家z=${this.currentZ.toFixed(1)}`);
+            }
+            
+            // 防止无限循环
+            if (generatedCount > 15) {
+                console.error('隧道生成异常：检测到可能的无限循环，停止生成');
+                break;
+            }
         }
-
-        // 回收远离的段（玩家后方的段）
-        const backZ = this.currentZ + Config.TUNNEL.SEGMENTS_BEHIND * Config.TUNNEL.SEGMENT_LENGTH;
         
+        // 回收玩家后方的段（保守回收策略）
+        const backZ = this.currentZ + (Config.TUNNEL.SEGMENTS_BEHIND + 1) * Config.TUNNEL.SEGMENT_LENGTH;
+        
+        const beforeCount = this.segments.length;
         this.segments = this.segments.filter(segment => {
             if (segment.position.z > backZ) {
                 this.recycleSegment(segment);
-                console.log(`回收隧道段 Z=${segment.position.z}, 玩家位置 Z=${this.currentZ}`);
                 return false;
             }
             return true;
         });
+        
+        const recycledCount = beforeCount - this.segments.length;
+        if (recycledCount > 0) {
+            console.log(`回收了${recycledCount}段，剩余${this.segments.length}段`);
+        }
+        
+        // 警告段数过少
+        if (this.segments.length < 5) {
+            console.warn(`警告：隧道段数量过少 (${this.segments.length})，可能出现空隙`);
+        }
     }
 
     /**
@@ -414,15 +438,7 @@ export class Tunnel {
      * 更新材质动画效果
      */
     updateMaterials(deltaTime) {
-        const time = Date.now() * 0.001;
-        
-        // 内壁发光脉动
-        const glowIntensity = 0.2 + Math.sin(time * 2) * 0.1;
-        this.materials.inner.emissive.setScalar(glowIntensity);
-        
-        // 线框闪烁
-        const wireframeOpacity = 0.3 + Math.sin(time * 5) * 0.2;
-        this.materials.wireframe.opacity = Math.max(0.1, wireframeOpacity);
+        // 保持静态，不做动画，避免闪烁
     }
 
     /**

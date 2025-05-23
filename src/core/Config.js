@@ -14,7 +14,7 @@ export const Config = {
 
     // 场景设置
     SCENE: {
-        FOV: 85,                     // 相机视野角度（增加以获得更好视野）
+        FOV: 65,                     // 减少相机视野角度，避免看到隧道外部（从85降低到65）
         NEAR_PLANE: 0.1,             // 近裁剪平面
         FAR_PLANE: 200,              // 远裁剪平面
         BACKGROUND_COLOR: 0x000510,  // 背景颜色 (深蓝黑色)
@@ -28,10 +28,10 @@ export const Config = {
         MOVE_SPEED: 2.0,           // 移动灵敏度 (从0.8进一步提高到2.0)
         SMOOTH_FACTOR: 0.5,        // 移动平滑系数 (从0.3提高到0.5)
         BOUNDS: {
-            X_MIN: -5,             // X轴移动边界
-            X_MAX: 5,
-            Y_MIN: -3,             // Y轴移动边界
-            Y_MAX: 3
+            X_MIN: -5.5,           // 进一步减小到5.5，确保所有角落都在安全范围
+            X_MAX: 5.5,
+            Y_MIN: -5.5,           // 进一步减小到5.5，确保所有角落都在安全范围  
+            Y_MAX: 5.5
         },
         COLLISION_BOX: {
             WIDTH: 0.8,    // 匹配缩小的飞机宽度

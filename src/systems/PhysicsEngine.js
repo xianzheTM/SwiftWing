@@ -44,10 +44,7 @@ export class PhysicsEngine {
      * 更新玩家物理状态
      */
     updatePlayerPhysics(player, deltaTime) {
-        // 边界约束检查
-        this.applyBoundaryConstraints(player);
-        
-        // 隧道边界检查
+        // 隧道边界检查 - 只使用圆形隧道约束
         this.applyTunnelConstraints(player);
     }
 
@@ -83,7 +80,7 @@ export class PhysicsEngine {
     applyTunnelConstraints(player) {
         const position = player.getPosition();
         const distanceFromCenter = Math.sqrt(position.x * position.x + position.y * position.y);
-        const maxRadius = Config.TUNNEL.RADIUS - Config.TUNNEL.WALL_THICKNESS - 1; // 留出安全距离
+        const maxRadius = Config.TUNNEL.RADIUS - Config.TUNNEL.WALL_THICKNESS - 0.8; // 适度的安全距离，避免看到隧道外部
         
         if (distanceFromCenter > maxRadius) {
             // 将玩家推回隧道内
