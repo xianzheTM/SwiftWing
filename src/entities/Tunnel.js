@@ -95,11 +95,15 @@ export class Tunnel {
             // 重用已有段
             segment.position.z = zPosition;
             segment.visible = true;
+            this.segments.push(segment);  // 确保添加到segments数组
+            this.scene.add(segment);      // 确保添加到场景
+            console.log(`重用隧道段在 Z=${zPosition}, 总段数: ${this.segments.length}`);
         } else {
             // 创建新段
             const newSegment = this.buildSegmentGeometry(zPosition);
             this.segments.push(newSegment);
             this.scene.add(newSegment);
+            console.log(`创建新隧道段在 Z=${zPosition}, 总段数: ${this.segments.length}`);
         }
     }
 
@@ -204,7 +208,8 @@ export class Tunnel {
         // 支撑梁
         const beamCount = 6;
         for (let i = 0; i < beamCount; i++) {
-            const angle = (i / beamCount) * Math.PI * 2;
+            // 添加角度偏移，避免支撑梁出现在垂直中心轴线上
+            const angle = (i / beamCount) * Math.PI * 2 + Math.PI / 12; // 添加15度偏移
             const beam = this.createSupportBeam();
             beam.position.set(
                 Math.cos(angle) * (Config.TUNNEL.RADIUS - 0.8),
@@ -235,8 +240,8 @@ export class Tunnel {
      * 添加科幻装饰细节
      */
     addSciFiDetails(group) {
-        // 添加发光条纹
-        this.addGlowStripes(group);
+        // 添加发光条纹 - 临时禁用以测试竖线问题
+        // this.addGlowStripes(group);
         
         // 添加数据板
         this.addDataPanels(group);
@@ -249,7 +254,8 @@ export class Tunnel {
         const stripeCount = 4;
         
         for (let i = 0; i < stripeCount; i++) {
-            const angle = (i / stripeCount) * Math.PI * 2;
+            // 添加角度偏移，避免条纹出现在垂直中心轴线上
+            const angle = (i / stripeCount) * Math.PI * 2 + Math.PI / 8; // 添加22.5度偏移
             
             const stripeGeometry = new THREE.PlaneGeometry(0.2, Config.TUNNEL.SEGMENT_LENGTH);
             const stripeMaterial = new THREE.MeshBasicMaterial({
@@ -335,6 +341,12 @@ export class Tunnel {
     update(deltaTime, playerZ) {
         this.currentZ = playerZ;
         this.updateSpeed(deltaTime);
+        
+        // 添加调试信息
+        if (Math.floor(Date.now() / 1000) % 2 === 0 && Date.now() % 1000 < 50) {
+            console.log(`隧道状态: 玩家Z=${playerZ.toFixed(2)}, 最后生成Z=${this.lastGeneratedZ}, 段数=${this.segments.length}`);
+        }
+        
         this.manageSegments();
         this.updateMaterials(deltaTime);
     }
@@ -343,29 +355,37 @@ export class Tunnel {
      * 更新隧道速度
      */
     updateSpeed(deltaTime) {
-        // 逐渐增加速度
-        this.currentSpeed += Config.PHYSICS.SPEED_INCREMENT;
+        // 简化的线性增长，更容易控制
+        const incrementPerSecond = Config.PHYSICS.SPEED_INCREMENT * deltaTime;
+        
+        this.currentSpeed += incrementPerSecond;
         this.currentSpeed = Math.min(this.currentSpeed, Config.PHYSICS.MAX_SPEED);
+        
+        // 确保速度不会低于初始速度
+        this.currentSpeed = Math.max(this.currentSpeed, Config.PHYSICS.INITIAL_SPEED);
     }
 
     /**
      * 管理隧道段的生成和回收
      */
     manageSegments() {
-        // 检查是否需要生成新段
+        // 检查是否需要生成新段（玩家向负Z方向移动）
         const frontZ = this.currentZ - Config.TUNNEL.SEGMENTS_AHEAD * Config.TUNNEL.SEGMENT_LENGTH;
         
+        // 修复：当玩家向负方向移动时，需要在更远的负Z位置生成新段
         while (this.lastGeneratedZ > frontZ) {
             this.lastGeneratedZ -= Config.TUNNEL.SEGMENT_LENGTH;
             this.createSegment(this.lastGeneratedZ);
+            console.log(`生成新隧道段在 Z=${this.lastGeneratedZ}, 玩家位置 Z=${this.currentZ}`);
         }
 
-        // 回收远离的段
+        // 回收远离的段（玩家后方的段）
         const backZ = this.currentZ + Config.TUNNEL.SEGMENTS_BEHIND * Config.TUNNEL.SEGMENT_LENGTH;
         
         this.segments = this.segments.filter(segment => {
             if (segment.position.z > backZ) {
                 this.recycleSegment(segment);
+                console.log(`回收隧道段 Z=${segment.position.z}, 玩家位置 Z=${this.currentZ}`);
                 return false;
             }
             return true;
@@ -377,9 +397,7 @@ export class Tunnel {
      */
     getSegmentFromPool() {
         const segment = this.segmentPool.pop();
-        if (segment) {
-            this.segments.push(segment);
-        }
+        // 不在这里添加到segments数组，由createSegment统一处理
         return segment;
     }
 

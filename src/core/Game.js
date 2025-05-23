@@ -335,6 +335,9 @@ export class Game {
         // 更新玩家输入
         this.player.updateInput(inputState);
         
+        // 设置玩家前进速度（使用隧道的当前速度）
+        this.player.setForwardSpeed(this.tunnel.getCurrentSpeed());
+        
         // 更新游戏实体
         this.player.update(deltaTime);
         this.tunnel.update(deltaTime, this.player.getPosition().z);
@@ -405,7 +408,7 @@ export class Game {
         }
         
         if (this.hudElements.speed) {
-            const speed = Math.round(this.tunnel.getCurrentSpeed() * 100);
+            const speed = Math.round(this.tunnel.getCurrentSpeed() * 10);
             this.hudElements.speed.textContent = speed;
         }
         

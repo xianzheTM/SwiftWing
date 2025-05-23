@@ -31,6 +31,9 @@ export class Player {
         this.tiltAmount = 0;
         this.maxTilt = Math.PI / 8; // 22.5度
         
+        // 前进速度
+        this.forwardSpeed = 0;
+        
         // 碰撞检测
         this.boundingBox = new THREE.Box3();
         this.collisionBox = null;
@@ -59,49 +62,70 @@ export class Player {
      * 创建飞机网格
      */
     createMesh() {
-        // 创建飞机几何体 (简化的战斗机造型)
+        // 创建飞机几何体 (简化的战斗机造型) - 适中的尺寸
         const group = new THREE.Group();
         
-        // 主机身
-        const fuselageGeometry = new THREE.BoxGeometry(0.3, 0.2, 1.5);
+        // 主机身 - 适中尺寸
+        const fuselageGeometry = new THREE.BoxGeometry(0.4, 0.3, 2.0);
         const fuselageMaterial = new THREE.MeshLambertMaterial({ 
-            color: 0x00ff88,
-            emissive: 0x003322
+            color: 0x00ffaa,
+            emissive: 0x004444  // 增强发光
         });
         const fuselage = new THREE.Mesh(fuselageGeometry, fuselageMaterial);
         group.add(fuselage);
         
-        // 机翼
-        const wingGeometry = new THREE.BoxGeometry(1.2, 0.05, 0.4);
+        // 机翼 - 适中尺寸
+        const wingGeometry = new THREE.BoxGeometry(1.8, 0.08, 0.6);
         const wingMaterial = new THREE.MeshLambertMaterial({ 
-            color: 0x00cc66,
-            emissive: 0x002211
+            color: 0x00ddaa,
+            emissive: 0x003333  // 增强发光
         });
         const wings = new THREE.Mesh(wingGeometry, wingMaterial);
-        wings.position.z = 0.2;
+        wings.position.z = 0.3;
         group.add(wings);
         
-        // 尾翼
-        const tailGeometry = new THREE.BoxGeometry(0.4, 0.3, 0.1);
+        // 尾翼 - 适中尺寸
+        const tailGeometry = new THREE.BoxGeometry(0.6, 0.4, 0.15);
         const tailMaterial = new THREE.MeshLambertMaterial({ 
-            color: 0x00aa44,
-            emissive: 0x001100
+            color: 0x00bb88,
+            emissive: 0x002222  // 增强发光
         });
         const tail = new THREE.Mesh(tailGeometry, tailMaterial);
-        tail.position.z = 0.7;
+        tail.position.z = 1.0;
         group.add(tail);
         
-        // 驾驶舱
-        const cockpitGeometry = new THREE.SphereGeometry(0.1, 8, 6);
+        // 驾驶舱 - 适中尺寸
+        const cockpitGeometry = new THREE.SphereGeometry(0.15, 8, 6);
         const cockpitMaterial = new THREE.MeshLambertMaterial({ 
-            color: 0x4488ff,
-            emissive: 0x112244,
-            transparent: true,
-            opacity: 0.8
+            color: 0x88ffff,
+            emissive: 0x4488ff,  // 强烈发光效果
+            transparent: false,  // 移除透明度
+            opacity: 1.0
         });
         const cockpit = new THREE.Mesh(cockpitGeometry, cockpitMaterial);
-        cockpit.position.set(0, 0.1, -0.3);
+        cockpit.position.set(0, 0.15, -0.4);
         group.add(cockpit);
+        
+        // 添加明亮的标识灯
+        const lightGeometry = new THREE.SphereGeometry(0.05, 6, 4);
+        const redLightMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xff0000,
+            emissive: 0xff0000  // 完全发光的红色
+        });
+        const greenLightMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ff00,
+            emissive: 0x00ff00  // 完全发光的绿色
+        });
+        
+        // 左翼灯（红色）
+        const leftLight = new THREE.Mesh(lightGeometry, redLightMaterial);
+        leftLight.position.set(-0.9, 0, 0.3);
+        group.add(leftLight);
+        
+        // 右翼灯（绿色）
+        const rightLight = new THREE.Mesh(lightGeometry, greenLightMaterial);
+        rightLight.position.set(0.9, 0, 0.3);
+        group.add(rightLight);
         
         // 设置整体属性
         group.position.copy(this.position);
@@ -110,14 +134,16 @@ export class Player {
         
         this.mesh = group;
         this.scene.add(this.mesh);
+        
+        console.log('飞机网格已创建，位置:', this.position, '可见性:', this.mesh.visible);
     }
 
     /**
      * 创建引擎尾迹效果
      */
     createEngineTrail() {
-        // 粒子几何体
-        const particleCount = 50;
+        // 创建科幻风格的推进器效果 - 更短更紧凑
+        const particleCount = 30; // 减少粒子数量
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
@@ -127,31 +153,31 @@ export class Player {
         for (let i = 0; i < particleCount; i++) {
             const i3 = i * 3;
             
-            // 位置 (在飞机后方)
-            positions[i3] = 0;
-            positions[i3 + 1] = 0;
-            positions[i3 + 2] = Math.random() * -3;
+            // 位置 (在飞机后方，更短的距离)
+            positions[i3] = (Math.random() - 0.5) * 0.3; // X轴轻微散布
+            positions[i3 + 1] = (Math.random() - 0.5) * 0.2; // Y轴轻微散布
+            positions[i3 + 2] = 1.0 + Math.random() * 1.5; // 更短的尾气长度(1.5而不是3)
             
-            // 颜色 (蓝色到白色渐变)
-            const intensity = Math.random();
-            colors[i3] = intensity * 0.5;     // R
-            colors[i3 + 1] = intensity * 0.8; // G
-            colors[i3 + 2] = 1.0;             // B
+            // 科幻色彩 (明亮的蓝白色能量)
+            const intensity = Math.random() * 0.5 + 0.5; // 更亮的基础强度
+            colors[i3] = intensity * 0.3;     // R - 少量红色
+            colors[i3 + 1] = intensity * 0.8; // G - 中等绿色  
+            colors[i3 + 2] = 1.0;             // B - 满蓝色
             
-            // 大小
-            sizes[i] = Math.random() * 0.1 + 0.05;
+            // 大小变化
+            sizes[i] = Math.random() * 0.15 + 0.1; // 稍大一些的粒子
         }
         
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
         
-        // 粒子材质
+        // 科幻风格的材质
         const material = new THREE.PointsMaterial({
-            size: 0.1,
+            size: 0.15, // 稍大的粒子
             vertexColors: true,
             transparent: true,
-            opacity: 0.8,
+            opacity: 0.9, // 更不透明，更亮
             blending: THREE.AdditiveBlending
         });
         
@@ -205,6 +231,9 @@ export class Player {
         if (this.mesh) {
             this.mesh.position.copy(this.position);
             this.mesh.rotation.z = this.tiltAmount;
+            
+            // 确保飞机始终可见
+            this.mesh.visible = true;
         }
         
         // 更新碰撞盒位置
@@ -225,7 +254,9 @@ export class Player {
         // 计算目标位置
         this.targetPosition.x = this.position.x + this.inputState.moveX * Config.PLAYER.MOVE_SPEED;
         this.targetPosition.y = this.position.y + this.inputState.moveY * Config.PLAYER.MOVE_SPEED;
-        this.targetPosition.z = this.position.z;
+        
+        // Z轴自动前进（负方向是前进）
+        this.targetPosition.z = this.position.z - this.forwardSpeed * deltaTime;
         
         // 应用边界约束
         this.targetPosition.x = Math.max(
@@ -243,6 +274,7 @@ export class Player {
         // 记录移动速度用于倾斜计算
         this.velocity.x = this.inputState.moveX * Config.PLAYER.MOVE_SPEED;
         this.velocity.y = this.inputState.moveY * Config.PLAYER.MOVE_SPEED;
+        this.velocity.z = -this.forwardSpeed;
     }
 
     /**
@@ -267,20 +299,27 @@ export class Player {
         
         // 更新每个粒子
         for (let i = 0; i < positions.length; i += 3) {
-            // 向后移动粒子
-            positions[i + 2] -= deltaTime * 5; // Z轴向后
+            // 向后移动粒子（向正Z方向，飞机后方），科幻推进器效果
+            positions[i + 2] += deltaTime * 8; // 更快的速度让推进器效果更紧凑
             
-            // 重置超出范围的粒子
-            if (positions[i + 2] < -5) {
-                positions[i + 2] = 0.5;
-                positions[i] = (Math.random() - 0.5) * 0.2; // 轻微随机X偏移
-                positions[i + 1] = (Math.random() - 0.5) * 0.1; // 轻微随机Y偏移
+            // 重置超出范围的粒子（更短的距离）
+            if (positions[i + 2] > 3.5) { // 更短的尾气长度
+                positions[i + 2] = 1.0; // 从推进器出口重新开始
+                positions[i] = (Math.random() - 0.5) * 0.3; // X轴散布
+                positions[i + 1] = (Math.random() - 0.5) * 0.2; // Y轴散布
                 
-                // 重置颜色
-                const intensity = Math.random();
-                colors[i] = intensity * 0.5;
-                colors[i + 1] = intensity * 0.8;
-                colors[i + 2] = 1.0;
+                // 重置为科幻色彩
+                const intensity = Math.random() * 0.5 + 0.5;
+                colors[i] = intensity * 0.3;     // 少量红色
+                colors[i + 1] = intensity * 0.8; // 中等绿色
+                colors[i + 2] = 1.0;             // 满蓝色
+            } else {
+                // 随距离增加透明度衰减（让远端更透明）
+                const distance = positions[i + 2] - 1.0;
+                const fadeRatio = Math.max(0.1, 1.0 - (distance / 2.5));
+                colors[i] = (colors[i] || 0.3) * fadeRatio;
+                colors[i + 1] = (colors[i + 1] || 0.8) * fadeRatio;
+                colors[i + 2] = (colors[i + 2] || 1.0) * fadeRatio;
             }
         }
         
@@ -470,6 +509,7 @@ export class Player {
         this.isInvulnerable = false;
         this.invulnerabilityDuration = 1000;
         this.tiltAmount = 0;
+        this.forwardSpeed = 0;
         
         if (this.mesh) {
             this.mesh.position.copy(this.position);
@@ -504,5 +544,12 @@ export class Player {
         }
         
         console.log('玩家对象已销毁');
+    }
+
+    /**
+     * 设置前进速度
+     */
+    setForwardSpeed(speed) {
+        this.forwardSpeed = speed;
     }
 } 

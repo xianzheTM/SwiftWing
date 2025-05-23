@@ -14,12 +14,12 @@ export const Config = {
 
     // 场景设置
     SCENE: {
-        FOV: 75,                    // 相机视野角度
-        NEAR_PLANE: 0.1,           // 近裁剪面
-        FAR_PLANE: 1000,           // 远裁剪面
-        BACKGROUND_COLOR: 0x000510, // 深空蓝背景
-        FOG_NEAR: 50,              // 雾效近距离
-        FOG_FAR: 200               // 雾效远距离
+        FOV: 85,                     // 相机视野角度（增加以获得更好视野）
+        NEAR_PLANE: 0.1,             // 近裁剪平面
+        FAR_PLANE: 200,              // 远裁剪平面
+        BACKGROUND_COLOR: 0x000510,  // 背景颜色 (深蓝黑色)
+        FOG_NEAR: 10,                // 雾效近距离
+        FOG_FAR: 100                 // 雾效远距离
     },
 
     // 玩家飞机配置
@@ -34,9 +34,9 @@ export const Config = {
             Y_MAX: 3
         },
         COLLISION_BOX: {
-            WIDTH: 0.5,
-            HEIGHT: 0.3,
-            DEPTH: 1.0
+            WIDTH: 0.8,    // 匹配缩小的飞机宽度
+            HEIGHT: 0.5,   // 匹配缩小的飞机高度
+            DEPTH: 1.5     // 匹配缩小的飞机深度
         }
     },
 
@@ -82,11 +82,12 @@ export const Config = {
 
     // 物理系统配置
     PHYSICS: {
-        GRAVITY: 0,               // 重力 (飞行游戏无重力)
-        SPEED_INCREMENT: 0.001,   // 速度递增率
-        INITIAL_SPEED: 0.2,       // 初始前进速度
-        MAX_SPEED: 1.0,          // 最大速度
-        COLLISION_TOLERANCE: 0.1  // 碰撞检测容差
+        GRAVITY: 0,               // 无重力
+        SPEED_INCREMENT: 0.02,    // 速度增长系数（每秒增长0.02，非常缓慢）
+        INITIAL_SPEED: 0.3,       // 初始前进速度（非常慢的起始）
+        MAX_SPEED: 2.0,           // 最大速度（进一步降低上限）
+        COLLISION_DAMAGE: 20,     // 碰撞伤害
+        COLLISION_TOLERANCE: 0.05 // 碰撞检测容差（更小的值让碰撞更精确）
     },
 
     // 输入系统配置
