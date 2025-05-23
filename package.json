@@ -1,0 +1,28 @@
+{
+  "name": "swiftwing",
+  "version": "1.0.0",
+  "description": "SwiftWing - 3D飞行竞速游戏",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "python3 -m http.server 8000 --directory .",
+    "dev-win": "python -m http.server 8000 --directory .",
+    "build": "echo 'Phase 1 - 复制文件到dist目录'",
+    "test": "echo 'Phase 1暂无测试'"
+  },
+  "keywords": [
+    "game",
+    "3d",
+    "threejs",
+    "flight",
+    "racing"
+  ],
+  "author": "SwiftWing Team",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.52.0",
+    "three": "^0.158.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

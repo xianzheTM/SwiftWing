@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftWing - 飞行竞速游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 游戏主容器 -->
+    <div id="game-container">
+        <!-- Three.js 渲染画布容器 -->
+        <div id="canvas-container"></div>
+        
+        <!-- 游戏UI层 -->
+        <div id="ui-layer">
+            <!-- HUD信息显示 -->
+            <div id="hud" style="display: none;">
+                <div class="hud-item">
+                    <span>分数:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="hud-item">
+                    <span>生命:</span>
+                    <span id="health">100%</span>
+                </div>
+                <div class="hud-item">
+                    <span>速度:</span>
+                    <span id="speed">0</span>
+                </div>
+                <div class="hud-item">
+                    <span>时间:</span>
+                    <span id="time">0.0s</span>
+                </div>
+            </div>
+            
+            <!-- 主菜单 -->
+            <div id="main-menu" class="menu">
+                <h1>SwiftWing</h1>
+                <p>飞行竞速游戏</p>
+                <button id="start-button">开始游戏</button>
+                <div class="controls-hint">
+                    <p>控制方式：</p>
+                    <p>鼠标移动 或 WASD键</p>
+                    <p>空格键：开始/暂停</p>
+                    <p>ESC键：暂停</p>
+                </div>
+            </div>
+            
+            <!-- 游戏结束菜单 -->
+            <div id="game-over-menu" class="menu" style="display: none;">
+                <h2>游戏结束</h2>
+                <div class="final-stats">
+                    <p>最终分数: <span id="final-score">0</span></p>
+                    <p>飞行时间: <span id="final-time">0</span>秒</p>
+                </div>
+                <button id="restart-button">重新开始</button>
+                <button onclick="location.reload()">返回主菜单</button>
+            </div>
+            
+            <!-- 暂停指示器 -->
+            <div id="pause-indicator" class="overlay" style="display: none;">
+                <h2>游戏暂停</h2>
+                <p>按空格键或ESC键继续</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js 库引入 -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.158.0/build/three.module.js"
+        }
+    }
+    </script>
+    
+    <!-- 游戏主程序 -->
+    <script type="module" src="../src/main.js"></script>
+</body>
+</html> 
